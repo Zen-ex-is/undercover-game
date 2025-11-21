@@ -5,7 +5,6 @@ import '../providers/game_provider.dart';
 import '../models/player.dart';
 import '../widgets/animated_dialog.dart';
 import '../services/haptic_service.dart';
-import 'word_reveal_screen.dart';
 import 'home_screen.dart';
 
 class GameScreen extends StatelessWidget {
@@ -200,33 +199,12 @@ class GameScreen extends StatelessWidget {
               : null,
           trailing: isEliminated
               ? const Icon(Icons.close, color: Colors.red)
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // View Word Button
-                    IconButton(
-                      icon: Icon(
-                        player.hasRevealed
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: player.hasRevealed
-                            ? Colors.green
-                            : Colors.grey,
-                      ),
-                      onPressed: () {
-                        HapticService().light();
-                        _showWordReveal(context, gameProvider, player);
-                      },
-                    ),
-                    // Eliminate Button
-                    IconButton(
-                      icon: const Icon(Icons.how_to_vote, color: Colors.red),
-                      onPressed: () {
-                        HapticService().light();
-                        _confirmElimination(context, gameProvider, player);
-                      },
-                    ),
-                  ],
+              : IconButton(
+                  icon: const Icon(Icons.how_to_vote, color: Colors.red),
+                  onPressed: () {
+                    HapticService().light();
+                    _confirmElimination(context, gameProvider, player);
+                  },
                 ),
         ),
       ),
@@ -272,17 +250,6 @@ class GameScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  void _showWordReveal(BuildContext context, GameProvider gameProvider, Player player) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => WordRevealScreen(player: player),
-      ),
-    ).then((_) {
-      gameProvider.revealWord(player.id);
-    });
   }
 
   void _confirmElimination(BuildContext context, GameProvider gameProvider, Player player) {

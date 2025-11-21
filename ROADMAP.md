@@ -48,33 +48,8 @@
 
 ---
 
-### v1.2.0 - Gameplay Enhancements
+### v1.2.0 - Content Expansion
 **Priority: High**
-**Timeline: 3-4 weeks**
-
-- [ ] Timer system
-  - [ ] Round timer
-  - [ ] Discussion timer
-  - [ ] Turn-based timer
-- [ ] Description history
-  - [ ] View what each player said
-  - [ ] Scroll through previous rounds
-- [ ] Vote tracking
-  - [ ] Show who voted for whom
-  - [ ] Vote counts
-- [ ] Hint system
-  - [ ] Hints for Mr. White
-  - [ ] Strategy tips
-- [ ] Tutorial mode
-  - [ ] Interactive walkthrough
-  - [ ] Practice round
-- [ ] Multiple word reveal attempts
-- [ ] Voting rounds limit
-
----
-
-### v1.3.0 - Content Expansion
-**Priority: Medium**
 **Timeline: 2-3 weeks**
 
 - [ ] 100+ additional word pairs
@@ -98,30 +73,7 @@
 
 ---
 
-### v1.4.0 - Statistics & History
-**Priority: Medium**
-**Timeline: 2-3 weeks**
-
-- [ ] Game history
-  - [ ] Save completed games
-  - [ ] View past games
-  - [ ] Game replay
-- [ ] Player statistics
-  - [ ] Win rate per role
-  - [ ] Total games played
-  - [ ] Best streaks
-  - [ ] Role distribution
-- [ ] Leaderboard (local)
-- [ ] Achievements
-  - [ ] First win as Spy
-  - [ ] Mr. White master
-  - [ ] Perfect detective
-  - [ ] 10 games played
-- [ ] Data export (CSV/JSON)
-
----
-
-### v1.5.0 - Advanced Features
+### v1.3.0 - Advanced Features
 **Priority: Medium**
 **Timeline: 4-5 weeks**
 
@@ -143,53 +95,6 @@
   - [ ] Adjustable settings
   - [ ] Rule variations
   - [ ] Mr. White guess difficulty toggle
-
----
-
-### v2.0.0 - Online Multiplayer
-**Priority: Low (Major Feature)**
-**Timeline: 8-12 weeks**
-
-- [ ] Firebase integration
-- [ ] Room creation
-- [ ] Join with room code
-- [ ] Real-time synchronization
-- [ ] Chat system
-- [ ] Online matchmaking
-- [ ] Friend system
-- [ ] Private/Public rooms
-- [ ] Spectator mode
-- [ ] Anti-cheat measures
-
----
-
-### v2.1.0 - Social Features
-**Priority: Low**
-**Timeline: 3-4 weeks**
-
-- [ ] User accounts
-- [ ] Profile customization
-- [ ] Friend invites
-- [ ] In-game chat
-- [ ] Emojis/Reactions
-- [ ] Share game results
-- [ ] Social media integration
-- [ ] Global leaderboard
-- [ ] Tournaments
-
----
-
-### v2.2.0 - Monetization (Optional)
-**Priority: Low**
-**Timeline: 2-3 weeks**
-
-- [ ] Premium word packs
-- [ ] Remove ads option
-- [ ] Custom themes (premium)
-- [ ] Early access features
-- [ ] Supporter badge
-- [ ] In-app purchases
-- [ ] Subscription model (optional)
 
 ---
 
@@ -453,6 +358,40 @@ While developing this project, learn:
   - ✅ Integrated haptic feedback on all button presses
   - ✅ Added Android permissions for vibration and audio
 
+### November 22, 2025
+- ✅ **Role Selection Phase Implementation:**
+  - ✅ Created new `RoleSelectionScreen` with card-based role picking
+  - ✅ Implemented animated card grid for player selection
+  - ✅ Added visual feedback when players pick their cards
+  - ✅ Created role reveal dialog showing only words (not roles)
+  - ✅ **Game Flow Change:** Players only see their WORD, not their role
+    - Civilians and Spies see their word (e.g., "COFFEE" or "TEA")
+    - Mr. White sees "YOU ARE MR. WHITE" with "You have NO word"
+    - Players must deduce if they're Civilian or Spy during gameplay
+  - ✅ Added progress bar showing selection status
+  - ✅ Implemented custom card pattern painter for visual appeal
+  - ✅ Implemented dialog background pattern painter
+  - ✅ Added haptic feedback for card selection
+  - ✅ Created smooth transitions between setup → role selection → game
+  - ✅ Updated game flow to include role selection before gameplay
+  - ✅ Added "Start Game" button that activates after all players select
+  - ✅ Adaptive card grid (2 columns for ≤6 players, 3 columns for 7+ players)
+  - ✅ Improved contrast and readability in reveal dialogs
+  - ✅ Dark gradient backgrounds for word/role cards with white text
+  - ✅ Themed color schemes (Purple for words, Orange for Mr. White)
+  - ✅ **Removed eye icon from game screen** (word reveal now done in card selection)
+  - ✅ Cleaned up unused word reveal functionality from game screen
+  - ✅ Removed `WordRevealScreen` navigation from game flow
+  - ✅ **Added back button** to role selection screen with confirmation dialog
+  - ✅ Back button allows players to return to setup and modify settings
+
+- ✅ **Roadmap Cleanup:**
+  - ✅ Removed unnecessary features from v1.2.0 (timer system, description history, vote tracking, hint system, tutorial)
+  - ✅ Simplified v1.2.0 to focus on core gameplay improvements
+  - ✅ Reduced timeline from 3-4 weeks to 1-2 weeks
+
+**Note:** Since players reveal their words during card selection, the in-game word reveal feature (eye icon) has been removed. If needed in the future, it can be restored from git history.
+
 ---
 
-Last Updated: November 19, 2025
+Last Updated: November 22, 2025

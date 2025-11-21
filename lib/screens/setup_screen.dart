@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
-import 'game_screen.dart';
+import 'role_selection_screen.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -281,7 +281,7 @@ class _SetupScreenState extends State<SetupScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => const GameScreen(),
+        builder: (context) => const RoleSelectionScreen(),
       ),
     );
   }
