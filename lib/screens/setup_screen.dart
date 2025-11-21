@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
-import 'role_selection_screen.dart';
+import 'player_names_screen.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -276,12 +276,15 @@ class _SetupScreenState extends State<SetupScreen> {
 
   void _startGame() {
     final gameProvider = Provider.of<GameProvider>(context, listen: false);
-    gameProvider.setupGame(_numPlayers, _numSpies, _includeMrWhite);
     
+    // Save game parameters to provider
+    gameProvider.setGameParameters(_numPlayers, _numSpies, _includeMrWhite);
+    
+    // Navigate to player names screen
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => const RoleSelectionScreen(),
+        builder: (context) => const PlayerNamesScreen(),
       ),
     );
   }

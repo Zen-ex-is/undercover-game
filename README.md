@@ -13,12 +13,14 @@ Undercover is a party game where players try to identify each other's roles thro
 ## ✨ Features
 
 - **Customizable Setup**: Choose 4-12 players, 1-3 spies, and optionally include Mr. White
+- **Player Name Management**: Save and reuse player names across games with search/filter functionality
 - **40+ Word Pairs**: Diverse categories including food, animals, transportation, entertainment, and more
 - **Intuitive UI**: Beautiful Material Design 3 interface with gradient backgrounds
-- **Private Word Reveal**: Secure word viewing system to prevent accidental reveals
+- **Card-Based Role Selection**: Each player picks their own card to reveal their word privately
 - **Player Elimination**: Vote system to eliminate suspected players
 - **Mr. White Guess**: Special mechanic allowing Mr. White to guess and win
 - **Game Statistics**: Live tracking of player counts and roles
+- **Haptic Feedback**: Vibration feedback for enhanced gameplay experience
 - **Win Conditions**: Multiple victory scenarios for different roles
 
 ## 🚀 Getting Started
@@ -60,14 +62,17 @@ Undercover is a party game where players try to identify each other's roles thro
    - Number of players (4-12)
    - Number of spies (1-3)
    - Include Mr. White (optional)
-3. Tap "START GAME" to begin
+3. Enter or select player names:
+   - Choose from saved players (with search)
+   - Or manually enter new names
+   - Names are saved automatically for future games
+4. Each player picks a card to reveal their word privately
 
 ### Game Phase
-1. Each player taps the eye icon to secretly view their word
-2. Players take turns describing their word (without saying it!)
-3. Discuss and deduce who has which role
-4. Use the vote icon to eliminate suspected players
-5. If Mr. White survives, they can attempt to guess the civilian word
+1. Players take turns describing their word (without saying it!)
+2. Discuss and deduce who has which role
+3. Use the vote icon to eliminate suspected players
+4. If Mr. White survives, they can attempt to guess the civilian word
 
 ### Win Conditions
 - **Civilians win**: Eliminate all Spies and Mr. White

@@ -16,6 +16,20 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   bool _allSelected = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize the game with the configured parameters
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final gameProvider = Provider.of<GameProvider>(context, listen: false);
+      gameProvider.setupGame(
+        gameProvider.numPlayers,
+        gameProvider.numSpies,
+        gameProvider.includeMrWhiteSetup,
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
@@ -250,7 +264,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        isSelected ? 'Selected!' : 'Player ${player.id}',
+                        isSelected ? 'Selected!' : player.name,
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -679,8 +693,8 @@ class _CardPatternPainter extends CustomPainter {
       ..color = Colors.white.withOpacity(0.2)
       ..style = PaintingStyle.fill;
     
-    final cornerRadius = 20.0;
-    canvas.drawCircle(Offset(20, 20), cornerRadius, cornerPaint);
+    const cornerRadius = 20.0;
+    canvas.drawCircle(const Offset(20, 20), cornerRadius, cornerPaint);
     canvas.drawCircle(Offset(size.width - 20, 20), cornerRadius, cornerPaint);
     canvas.drawCircle(Offset(20, size.height - 20), cornerRadius, cornerPaint);
     canvas.drawCircle(Offset(size.width - 20, size.height - 20), cornerRadius, cornerPaint);
@@ -722,8 +736,8 @@ class _DialogPatternPainter extends CustomPainter {
           : Colors.deepPurple.withOpacity(0.15)
       ..style = PaintingStyle.fill;
     
-    final cornerRadius = 30.0;
-    canvas.drawCircle(Offset(30, 30), cornerRadius, cornerPaint);
+    const cornerRadius = 30.0;
+    canvas.drawCircle(const Offset(30, 30), cornerRadius, cornerPaint);
     canvas.drawCircle(Offset(size.width - 30, 30), cornerRadius, cornerPaint);
     canvas.drawCircle(Offset(30, size.height - 30), cornerRadius, cornerPaint);
     canvas.drawCircle(Offset(size.width - 30, size.height - 30), cornerRadius, cornerPaint);

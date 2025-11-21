@@ -48,6 +48,28 @@
 
 ---
 
+### v1.1.5 - Player Management ✅ COMPLETED
+**Priority: High**
+**Timeline: 1 day (November 22, 2025)**
+
+- [x] Player name management system
+  - [x] Player names screen between setup and role selection
+  - [x] Local storage with `shared_preferences`
+  - [x] Saved players list with search/filter
+  - [x] Two-mode UI: "Saved Players" vs "Enter Manually"
+  - [x] Quick-select from saved players with checkboxes
+  - [x] Add new players on-the-fly
+  - [x] Delete saved players with confirmation
+  - [x] Progress indicator showing selection count
+- [x] Player names on role selection cards
+- [x] Player names throughout game
+- [x] Validation and duplicate detection
+- [x] Error handling for plugin initialization
+- [x] Updated game flow: Setup → Names → Role Selection → Game
+- [x] Haptic feedback on all interactions
+
+---
+
 ### v1.2.0 - Content Expansion
 **Priority: High**
 **Timeline: 2-3 weeks**
@@ -368,6 +390,49 @@ While developing this project, learn:
     - Civilians and Spies see their word (e.g., "COFFEE" or "TEA")
     - Mr. White sees "YOU ARE MR. WHITE" with "You have NO word"
     - Players must deduce if they're Civilian or Spy during gameplay
+  - ✅ Added progress bar showing selection status
+  - ✅ Implemented custom card pattern painter for visual appeal
+  - ✅ Implemented dialog background pattern painter
+  - ✅ Added haptic feedback for card selection
+  - ✅ Created smooth transitions between setup → role selection → game
+  - ✅ Updated game flow to include role selection before gameplay
+  - ✅ Added "Start Game" button that activates after all players select
+  - ✅ Adaptive card grid (2 columns for ≤6 players, 3 columns for 7+ players)
+  - ✅ Improved contrast and readability in reveal dialogs
+  - ✅ Dark gradient backgrounds for word/role cards with white text
+  - ✅ Themed color schemes (Purple for words, Orange for Mr. White)
+  - ✅ **Removed eye icon from game screen** (word reveal now done in card selection)
+  - ✅ Cleaned up unused word reveal functionality from game screen
+  - ✅ Removed `WordRevealScreen` navigation from game flow
+  - ✅ **Added back button** to role selection screen with confirmation dialog
+  - ✅ Back button allows players to return to setup and modify settings
+
+- ✅ **Player Name Management System (v1.1.5 - FULLY TESTED & WORKING):**
+  - ✅ Created `PlayerNamesScreen` between setup and role selection
+  - ✅ Implemented local storage with `shared_preferences`
+  - ✅ Built saved players list with search/filter functionality
+  - ✅ Added manual name entry mode (fallback if no saved players)
+  - ✅ Quick-select from saved players with checkboxes
+  - ✅ Add new players on-the-fly while selecting
+  - ✅ Delete saved players with confirmation
+  - ✅ Progress indicator showing selection count (X/Y selected)
+  - ✅ Two-mode UI: "Saved Players" vs "Enter Manually"
+  - ✅ Validation: Ensures exact player count is entered
+  - ✅ Duplicate name detection
+  - ✅ Player names display on role selection cards
+  - ✅ Player names persist throughout game (setup → names → roles → game)
+  - ✅ Updated `GameProvider` with `setPlayerNames()` method
+  - ✅ Added `numPlayers`, `numSpies`, `includeMrWhiteSetup` getters
+  - ✅ Updated game flow: Setup → Player Names → Role Selection → Game
+  - ✅ Haptic feedback on all player selection interactions
+  - ✅ Error handling for plugin initialization failures
+  - ✅ Non-blocking save operations (graceful degradation)
+  - ✅ **TESTED & CONFIRMED WORKING** - Full rebuild completed successfully
+
+- ✅ **Roadmap Cleanup:**
+  - ✅ Removed unnecessary features from v1.2.0 (timer system, description history, vote tracking, hint system, tutorial)
+  - ✅ Simplified v1.2.0 to focus on core gameplay improvements
+  - ✅ Reduced timeline from 3-4 weeks to 1-2 weeks
   - ✅ Added progress bar showing selection status
   - ✅ Implemented custom card pattern painter for visual appeal
   - ✅ Implemented dialog background pattern painter

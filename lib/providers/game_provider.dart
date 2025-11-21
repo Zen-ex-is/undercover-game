@@ -17,6 +17,12 @@ class GameProvider extends ChangeNotifier {
   int _currentPlayerIndex = 0;
   int _roundNumber = 1;
   String? _winner;
+  
+  // Game setup parameters
+  int _numPlayers = 6;
+  int _numSpies = 1;
+  bool _includeMrWhite = true;
+  List<String> _playerNames = [];
 
   // Getters
   List<Player> get players => _players;
@@ -25,12 +31,30 @@ class GameProvider extends ChangeNotifier {
   int get currentPlayerIndex => _currentPlayerIndex;
   int get roundNumber => _roundNumber;
   String? get winner => _winner;
+  int get numPlayers => _numPlayers;
+  int get numSpies => _numSpies;
+  bool get includeMrWhiteSetup => _includeMrWhite;
+  List<String> get playerNames => _playerNames;
   
   int get totalPlayers => _players.length;
   int get alivePlayers => _players.where((p) => !p.isEliminated).length;
   int get civilianCount => _players.where((p) => p.role == PlayerRole.civilian && !p.isEliminated).length;
   int get spyCount => _players.where((p) => p.role == PlayerRole.spy && !p.isEliminated).length;
   bool get hasMrWhite => _players.any((p) => p.role == PlayerRole.mrWhite && !p.isEliminated);
+
+  // Set game parameters (called from setup screen)
+  void setGameParameters(int numPlayers, int numSpies, bool includeMrWhite) {
+    _numPlayers = numPlayers;
+    _numSpies = numSpies;
+    _includeMrWhite = includeMrWhite;
+    notifyListeners();
+  }
+
+  // Set player names (called from player names screen)
+  void setPlayerNames(List<String> names) {
+    _playerNames = names;
+    notifyListeners();
+  }
 
   // Setup game with number of players
   void setupGame(int numPlayers, int numSpies, bool includeMrWhite) {
@@ -71,9 +95,14 @@ class GameProvider extends ChangeNotifier {
         word = null; // Mr. White gets no word
       }
       
+      // Use provided player names or fallback to default
+      String playerName = i < _playerNames.length 
+          ? _playerNames[i] 
+          : 'Player ${i + 1}';
+      
       _players.add(Player(
         id: i + 1,
-        name: 'Player ${i + 1}',
+        name: playerName,
         role: role,
         word: word,
       ));
