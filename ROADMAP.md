@@ -45,6 +45,14 @@
 - [x] Loading indicators (component created)
 - [x] Confirmation dialogs with animations (AnimatedConfirmDialog)
 - [ ] Player avatars (customizable)
+- [x] Advanced game configuration system
+  - [x] Game configuration models and enums
+  - [x] Advanced settings screen with tabs
+  - [x] Word category selection
+  - [x] Role variants UI (Detective, Jester, Guardian - coming in v1.3.0)
+  - [x] Special modifiers UI (coming in v1.3.0)
+  - [x] Integration with game setup flow
+  - [x] Category-based word filtering
 
 ---
 
@@ -75,18 +83,8 @@
 **Timeline: 2-3 weeks**
 
 - [ ] 100+ additional word pairs
-- [ ] Category selection
-  - [ ] Choose specific categories
-  - [ ] Difficulty levels
-- [ ] Custom word lists
-  - [ ] User-created word pairs
-  - [ ] Import/Export lists
-  - [ ] Community word packs
-- [ ] Multiple languages
-  - [ ] Spanish
-  - [ ] French
-  - [ ] German
-  - [ ] Chinese
+- [x] Category selection (implemented in Advanced Settings)
+  - [x] Choose specific categories
 - [ ] Themed word packs
   - [ ] Movies
   - [ ] Video games
@@ -99,24 +97,19 @@
 **Priority: Medium**
 **Timeline: 4-5 weeks**
 
-- [ ] Role variants
+- [ ] Role variants (UI ready, logic pending)
   - [ ] Detective (can investigate once)
   - [ ] Jester (wants to be eliminated)
   - [ ] Guardian (protects one player)
-- [ ] Game modes
-  - [ ] Quick play (shorter rounds)
-  - [ ] Marathon (longer game)
-  - [ ] Hardcore (no hints)
-  - [ ] Teams mode
-  - [ ] Expert Mode: Mr. White can guess either civilian OR spy word
-- [ ] Special abilities
+- [ ] Special abilities/modifiers (UI ready, logic pending)
   - [ ] One-time reveals
   - [ ] Player swaps
   - [ ] Word hints
+  - [ ] Double elimination
+  - [ ] Silent round
 - [ ] Custom rules
   - [ ] Adjustable settings
   - [ ] Rule variations
-  - [ ] Mr. White guess difficulty toggle
 
 ---
 
@@ -429,10 +422,33 @@ While developing this project, learn:
   - ✅ Non-blocking save operations (graceful degradation)
   - ✅ **TESTED & CONFIRMED WORKING** - Full rebuild completed successfully
 
+- ✅ **Advanced Game Configuration System (v1.1.0 Extension):**
+  - ✅ Created comprehensive game configuration models
+  - ✅ Implemented `GameConfig` class with all settings
+  - ✅ Added enums for WordCategory, RoleVariant, SpecialModifier
+  - ✅ Built `AdvancedSettingsScreen` with 3 tabs:
+    - ✅ Categories tab: Select specific word categories or randomize all
+    - ✅ Role Variants tab: Detective, Jester, Guardian (UI ready, marked as coming soon)
+    - ✅ Modifiers tab: Special abilities (UI ready, marked as coming soon)
+  - ✅ Integrated advanced settings button in setup screen
+  - ✅ Added settings summary display showing active configurations
+  - ✅ Updated `GameProvider` to handle `GameConfig`
+  - ✅ Implemented category-based word filtering in `WordDatabase`
+  - ✅ Added `getRandomWordPairByCategories()` method
+  - ✅ Category-to-string mapping for filtering
+  - ✅ Smooth navigation flow: Setup → Advanced Settings → Apply → Continue
+  - ✅ Cancel/Apply buttons for settings changes
+  - ✅ Visual feedback for selected categories
+  - ✅ Removed game modes feature (keeping game classic only)
+
 - ✅ **Roadmap Cleanup:**
   - ✅ Removed unnecessary features from v1.2.0 (timer system, description history, vote tracking, hint system, tutorial)
   - ✅ Simplified v1.2.0 to focus on core gameplay improvements
   - ✅ Reduced timeline from 3-4 weeks to 1-2 weeks
+  - ✅ Removed difficulty levels (not needed - word difficulty is inherent)
+  - ✅ Removed custom word lists (deferred)
+  - ✅ Removed multiple languages (deferred)
+  - ✅ Updated v1.3.0 to reflect UI completion for role variants and modifiers
   - ✅ Added progress bar showing selection status
   - ✅ Implemented custom card pattern painter for visual appeal
   - ✅ Implemented dialog background pattern painter

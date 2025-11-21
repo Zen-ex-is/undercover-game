@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
+import '../models/game_config.dart';
 import 'player_names_screen.dart';
+import 'advanced_settings_screen.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -14,6 +16,7 @@ class _SetupScreenState extends State<SetupScreen> {
   int _numPlayers = 6;
   int _numSpies = 1;
   bool _includeMrWhite = true;
+  GameConfig _gameConfig = GameConfig();
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +169,68 @@ class _SetupScreenState extends State<SetupScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+
+                // Advanced Settings Button
+                ElevatedButton.icon(
+                  onPressed: _openAdvancedSettings,
+                  icon: const Icon(Icons.settings),
+                  label: const Text(
+                    'ADVANCED SETTINGS',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Theme.of(context).primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Settings Summary
+                if (!_gameConfig.randomizeCategories)
+                  Card(
+                    elevation: 2,
+                    color: Colors.blue.shade50,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.info_outline, size: 16),
+                              SizedBox(width: 8),
+                              Text(
+                                'Active Settings',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '• ${_gameConfig.selectedCategories.length} categor${_gameConfig.selectedCategories.length == 1 ? 'y' : 'ies'} selected',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
 
                 // Start Game Button
                 ElevatedButton(
@@ -274,11 +338,46 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
+  Future<void> _openAdvancedSettings() async {
+    // Update config with current basic settings
+    final currentConfig = _gameConfig.copyWith(
+      numPlayers: _numPlayers,
+      numSpies: _numSpies,
+      includeMrWhite: _includeMrWhite,
+    );
+
+    final result = await Navigator.push<GameConfig>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AdvancedSettingsScreen(
+          initialConfig: currentConfig,
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _gameConfig = result;
+        // Update basic settings from config
+        _numPlayers = result.numPlayers;
+        _numSpies = result.numSpies;
+        _includeMrWhite = result.includeMrWhite;
+      });
+    }
+  }
+
   void _startGame() {
     final gameProvider = Provider.of<GameProvider>(context, listen: false);
     
-    // Save game parameters to provider
-    gameProvider.setGameParameters(_numPlayers, _numSpies, _includeMrWhite);
+    // Update config with final values
+    _gameConfig = _gameConfig.copyWith(
+      numPlayers: _numPlayers,
+      numSpies: _numSpies,
+      includeMrWhite: _includeMrWhite,
+    );
+    
+    // Save game configuration to provider
+    gameProvider.setGameConfiguration(_gameConfig);
     
     // Navigate to player names screen
     Navigator.pushReplacement(

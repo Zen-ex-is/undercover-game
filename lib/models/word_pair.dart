@@ -1,3 +1,5 @@
+import 'game_config.dart';
+
 class WordPair {
   final String civilianWord;
   final String spyWord;
@@ -75,5 +77,116 @@ class WordDatabase {
   static WordPair getRandomWordPair() {
     wordPairs.shuffle();
     return wordPairs.first;
+  }
+
+  static WordPair getRandomWordPairByCategories(Set<WordCategory> categories) {
+    if (categories.isEmpty || categories.contains(WordCategory.all)) {
+      return getRandomWordPair();
+    }
+
+    // Map WordCategory enum to category strings
+    final categoryStrings = categories.map((cat) => _mapCategoryToString(cat)).toSet();
+    
+    // Filter word pairs by selected categories
+    final filtered = wordPairs.where((pair) {
+      return categoryStrings.contains(pair.category);
+    }).toList();
+
+    if (filtered.isEmpty) {
+      // Fallback to all pairs if no matches
+      return getRandomWordPair();
+    }
+
+    filtered.shuffle();
+    return filtered.first;
+  }
+
+  static String _mapCategoryToString(WordCategory category) {
+    switch (category) {
+      case WordCategory.all:
+        return '';
+      case WordCategory.beverages:
+        return 'Beverages';
+      case WordCategory.fastFood:
+        return 'Fast Food';
+      case WordCategory.fruits:
+        return 'Fruits';
+      case WordCategory.carbs:
+        return 'Carbs';
+      case WordCategory.sweets:
+        return 'Sweets';
+      case WordCategory.pets:
+        return 'Pets';
+      case WordCategory.bigCats:
+        return 'Big Cats';
+      case WordCategory.birds:
+        return 'Birds';
+      case WordCategory.seaAnimals:
+        return 'Sea Animals';
+      case WordCategory.insects:
+        return 'Insects';
+      case WordCategory.vehicles:
+        return 'Vehicles';
+      case WordCategory.publicTransport:
+        return 'Public Transport';
+      case WordCategory.aircraft:
+        return 'Aircraft';
+      case WordCategory.twoWheelers:
+        return 'Two-wheelers';
+      case WordCategory.entertainment:
+        return 'Entertainment';
+      case WordCategory.reading:
+        return 'Reading';
+      case WordCategory.instruments:
+        return 'Instruments';
+      case WordCategory.sports:
+        return 'Sports';
+      case WordCategory.performance:
+        return 'Performance';
+      case WordCategory.celestial:
+        return 'Celestial';
+      case WordCategory.landforms:
+        return 'Landforms';
+      case WordCategory.waterBodies:
+        return 'Water Bodies';
+      case WordCategory.flowers:
+        return 'Flowers';
+      case WordCategory.seasons:
+        return 'Seasons';
+      case WordCategory.computers:
+        return 'Computers';
+      case WordCategory.phones:
+        return 'Phones';
+      case WordCategory.communication:
+        return 'Communication';
+      case WordCategory.socialMedia:
+        return 'Social Media';
+      case WordCategory.swimming:
+        return 'Swimming';
+      case WordCategory.dining:
+        return 'Dining';
+      case WordCategory.books:
+        return 'Books';
+      case WordCategory.healthcare:
+        return 'Healthcare';
+      case WordCategory.writing:
+        return 'Writing';
+      case WordCategory.utensils:
+        return 'Utensils';
+      case WordCategory.furniture:
+        return 'Furniture';
+      case WordCategory.clothing:
+        return 'Clothing';
+      case WordCategory.time:
+        return 'Time';
+      case WordCategory.movement:
+        return 'Movement';
+      case WordCategory.expressions:
+        return 'Expressions';
+      case WordCategory.rest:
+        return 'Rest';
+      case WordCategory.kitchen:
+        return 'Kitchen';
+    }
   }
 }

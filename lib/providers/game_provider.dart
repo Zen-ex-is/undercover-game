@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:math';
 import '../models/player.dart';
 import '../models/word_pair.dart';
+import '../models/game_config.dart';
 
 enum GameState {
   setup,
@@ -23,6 +24,7 @@ class GameProvider extends ChangeNotifier {
   int _numSpies = 1;
   bool _includeMrWhite = true;
   List<String> _playerNames = [];
+  GameConfig _gameConfig = GameConfig();
 
   // Getters
   List<Player> get players => _players;
@@ -35,12 +37,22 @@ class GameProvider extends ChangeNotifier {
   int get numSpies => _numSpies;
   bool get includeMrWhiteSetup => _includeMrWhite;
   List<String> get playerNames => _playerNames;
+  GameConfig get gameConfig => _gameConfig;
   
   int get totalPlayers => _players.length;
   int get alivePlayers => _players.where((p) => !p.isEliminated).length;
   int get civilianCount => _players.where((p) => p.role == PlayerRole.civilian && !p.isEliminated).length;
   int get spyCount => _players.where((p) => p.role == PlayerRole.spy && !p.isEliminated).length;
   bool get hasMrWhite => _players.any((p) => p.role == PlayerRole.mrWhite && !p.isEliminated);
+
+  // Set game configuration (called from setup screen)
+  void setGameConfiguration(GameConfig config) {
+    _gameConfig = config;
+    _numPlayers = config.numPlayers;
+    _numSpies = config.numSpies;
+    _includeMrWhite = config.includeMrWhite;
+    notifyListeners();
+  }
 
   // Set game parameters (called from setup screen)
   void setGameParameters(int numPlayers, int numSpies, bool includeMrWhite) {
@@ -59,7 +71,9 @@ class GameProvider extends ChangeNotifier {
   // Setup game with number of players
   void setupGame(int numPlayers, int numSpies, bool includeMrWhite) {
     _players.clear();
-    _currentWordPair = WordDatabase.getRandomWordPair();
+    
+    // Get word pair based on configuration
+    _currentWordPair = _getWordPairFromConfig();
     
     // Create list of roles
     List<PlayerRole> roles = [];
@@ -206,6 +220,20 @@ class GameProvider extends ChangeNotifier {
     _roundNumber = 1;
     _winner = null;
     notifyListeners();
+  }
+
+  // Get word pair based on game configuration
+  WordPair _getWordPairFromConfig() {
+    if (_gameConfig.randomizeCategories || 
+        _gameConfig.selectedCategories.contains(WordCategory.all)) {
+      // Use all word pairs
+      return WordDatabase.getRandomWordPair();
+    } else {
+      // Filter by selected categories
+      return WordDatabase.getRandomWordPairByCategories(
+        _gameConfig.selectedCategories,
+      );
+    }
   }
 
   // Mr. White guesses the civilian word
