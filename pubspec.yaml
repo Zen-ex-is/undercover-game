@@ -1,0 +1,30 @@
+name: undercover_game
+description: A social deduction word guessing game with Civilians, Spies, and Mr. White
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  provider: ^6.0.5
+  audioplayers: ^5.2.1  # For sound effects
+  flutter_animate: ^4.3.0  # For animations
+  vibration: ^2.0.0  # For haptic feedback (updated to v2)
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  remove_alpha_ios: true
