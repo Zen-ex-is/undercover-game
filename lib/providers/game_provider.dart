@@ -121,6 +121,32 @@ class GameProvider extends ChangeNotifier {
         word: word,
       ));
     }
+
+    // Ensure Mr. White does not go first
+    // We rotate the player list so that the first player is never Mr. White
+    if (includeMrWhite && _players.any((p) => p.role == PlayerRole.mrWhite)) {
+      List<int> validStartingIndices = [];
+      for (int i = 0; i < _players.length; i++) {
+        if (_players[i].role != PlayerRole.mrWhite) {
+          validStartingIndices.add(i);
+        }
+      }
+
+      if (validStartingIndices.isNotEmpty) {
+        // Pick a random valid starting player
+        int startIndex = validStartingIndices[Random().nextInt(validStartingIndices.length)];
+        
+        // Rotate the list so this player is first
+        if (startIndex > 0) {
+          List<Player> rotatedList = [
+            ..._players.sublist(startIndex),
+            ..._players.sublist(0, startIndex)
+          ];
+          _players.clear();
+          _players.addAll(rotatedList);
+        }
+      }
+    }
     
     _gameState = GameState.playing;
     _currentPlayerIndex = 0;
@@ -151,8 +177,22 @@ class GameProvider extends ChangeNotifier {
   void eliminatePlayer(int playerId) {
     int index = _players.indexWhere((p) => p.id == playerId);
     if (index != -1) {
+      bool isMrWhite = _players[index].role == PlayerRole.mrWhite;
       _players[index] = _players[index].copyWith(isEliminated: true);
-      checkGameEnd();
+      
+      // If Mr. White is eliminated, we don't check for game end yet.
+      // We wait for Mr. White to make their guess.
+      if (!isMrWhite) {
+        checkGameEnd();
+      }
+      
+      // If the game is continuing, start the next round with a randomized order
+      // This ensures that the speaking order changes every round
+      if (_gameState != GameState.finished) {
+        _roundNumber++;
+        _players.shuffle();
+      }
+      
       notifyListeners();
     }
   }
@@ -172,7 +212,7 @@ class GameProvider extends ChangeNotifier {
     // If all civilians are eliminated
     if (civilianCount == 0) {
       if (hasMrWhite && spyCount > 0) {
-        _winner = 'Spies and Mr. White win! All civilians eliminated!';
+        _winner = 'Spies win! All civilians eliminated!';
       } else if (hasMrWhite) {
         _winner = 'Mr. White wins! All civilians eliminated!';
       } else {
@@ -247,8 +287,11 @@ class GameProvider extends ChangeNotifier {
       // Standard Mode: Only civilian word is correct
       if (guessLower == civilianWord) {
         _winner = 'Mr. White wins! Correct guess: ${_currentWordPair!.civilianWord}';
+        _gameState = GameState.finished;
       } else {
-        _winner = 'Civilians and Spies win! Mr. White guessed wrong: $guess (Correct: ${_currentWordPair!.civilianWord})';
+        // Mr. White guessed wrong.
+        // Check if the game should end (e.g. if Civilians have won now that Mr. White failed)
+        checkGameEnd();
       }
       
       // TODO v1.5.0: Add Expert Mode logic
@@ -256,7 +299,6 @@ class GameProvider extends ChangeNotifier {
       // String spyWord = _currentWordPair!.spyWord.toLowerCase();
       // if (guessLower == civilianWord || guessLower == spyWord) { ... }
       
-      _gameState = GameState.finished;
       notifyListeners();
     }
   }

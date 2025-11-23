@@ -12,7 +12,8 @@ class RoleSelectionScreen extends StatefulWidget {
 }
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
-  final Set<int> _selectedPlayerIds = {};
+  final Set<int> _selectedCardIndices = {};
+  int _currentPlayerIndex = 0;
   bool _allSelected = false;
 
   @override
@@ -26,7 +27,65 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         gameProvider.numSpies,
         gameProvider.includeMrWhiteSetup,
       );
+      
+      // Show the first player's turn dialog
+      if (gameProvider.players.isNotEmpty) {
+        _showTurnDialog(context, gameProvider.players[0].name);
+      }
     });
+  }
+
+  void _showTurnDialog(BuildContext context, String playerName) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Next Player', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.person_pin, size: 64, color: Colors.deepPurple),
+            const SizedBox(height: 16),
+            const Text(
+              'Pass the device to:',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              playerName,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.deepPurple,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'It\'s your turn to pick a card!',
+              style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                HapticService().light();
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              ),
+              child: Text('I am $playerName'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -34,16 +93,17 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
         final players = gameProvider.players;
-        final allPlayersSelected = _selectedPlayerIds.length == players.length;
-
-        // Update allSelected state when all players have picked
-        if (allPlayersSelected && !_allSelected) {
-          _allSelected = true;
-          // Trigger haptic feedback
-          Future.delayed(const Duration(milliseconds: 100), () {
-            HapticService().success();
-          });
+        
+        // Safety check
+        if (players.isEmpty) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
+
+        final currentPlayerName = _currentPlayerIndex < players.length 
+            ? players[_currentPlayerIndex].name 
+            : 'All Done';
 
         return Scaffold(
           appBar: AppBar(
@@ -53,7 +113,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               icon: const Icon(Icons.arrow_back),
               onPressed: () {
                 HapticService().light();
-                // Show confirmation dialog before going back
                 _confirmGoBack(context, gameProvider);
               },
             ),
@@ -71,8 +130,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
             ),
             child: Column(
               children: [
-                // Instructions
-                _buildInstructions(players.length, _selectedPlayerIds.length),
+                // Instructions / Status
+                _buildStatusHeader(players.length, _currentPlayerIndex, currentPlayerName),
                 
                 // Card Grid
                 Expanded(
@@ -80,9 +139,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        // Calculate optimal grid based on number of players
                         int crossAxisCount = players.length <= 6 ? 2 : 3;
-                        // Use fixed aspect ratio instead of calculation
                         double aspectRatio = players.length <= 6 ? 0.7 : 0.65;
                         
                         return GridView.builder(
@@ -94,14 +151,13 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                           ),
                           itemCount: players.length,
                           itemBuilder: (context, index) {
-                            final player = players[index];
-                            final isSelected = _selectedPlayerIds.contains(player.id);
+                            final isSelected = _selectedCardIndices.contains(index);
                             
                             return _buildCard(
                               context,
-                              player,
                               isSelected,
                               index,
+                              gameProvider,
                             );
                           },
                         );
@@ -111,7 +167,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 ),
                 
                 // Start Game Button
-                _buildStartButton(context, allPlayersSelected),
+                _buildStartButton(context, _allSelected),
               ],
             ),
           ),
@@ -120,7 +176,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     );
   }
 
-  Widget _buildInstructions(int totalPlayers, int selectedCount) {
+  Widget _buildStatusHeader(int totalPlayers, int currentIndex, String currentPlayerName) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -141,48 +197,61 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       ),
       child: Column(
         children: [
-          const Text(
-            '🎴 Each player picks one card',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          if (!_allSelected) ...[
+            const Text(
+              'Current Turn',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white70,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Tap a card to reveal your secret role',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
+            const SizedBox(height: 4),
+            Text(
+              currentPlayerName,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
+            const SizedBox(height: 8),
+            const Text(
+              'Pick a random card!',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ] else ...[
+            const Icon(Icons.check_circle, color: Colors.greenAccent, size: 40),
+            const SizedBox(height: 8),
+            const Text(
+              'All players ready!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: totalPlayers > 0 ? selectedCount / totalPlayers : 0.0,
+              value: totalPlayers > 0 ? currentIndex / totalPlayers : 0.0,
               backgroundColor: Colors.white30,
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-              minHeight: 10,
+              minHeight: 8,
             ),
           ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              '$selectedCount / $totalPlayers players selected',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurple.shade700,
-              ),
+          const SizedBox(height: 8),
+          Text(
+            '$currentIndex / $totalPlayers selected',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
             ),
           ),
         ],
@@ -192,20 +261,14 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
   Widget _buildCard(
     BuildContext context,
-    dynamic player,
     bool isSelected,
-    int index,
+    int cardIndex,
+    GameProvider gameProvider,
   ) {
     return GestureDetector(
-      onTap: isSelected
+      onTap: isSelected || _allSelected
           ? null
-          : () {
-              setState(() {
-                _selectedPlayerIds.add(player.id);
-              });
-              HapticService().medium();
-              _showRoleDialog(context, player);
-            },
+          : () => _handleCardTap(cardIndex, gameProvider),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         decoration: BoxDecoration(
@@ -214,7 +277,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isSelected
-                ? [Colors.green.shade600, Colors.green.shade800]
+                ? [Colors.grey.shade700, Colors.grey.shade900]
                 : [
                     Colors.deepPurple.shade600,
                     Colors.deepPurple.shade800,
@@ -223,86 +286,76 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? Colors.green.withOpacity(0.5)
+                  ? Colors.black.withOpacity(0.2)
                   : Colors.deepPurple.withOpacity(0.5),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: isSelected
-                ? null
-                : () {
-                    setState(() {
-                      _selectedPlayerIds.add(player.id);
-                    });
-                    HapticService().medium();
-                    _showRoleDialog(context, player);
-                  },
-            child: Stack(
-              children: [
-                // Card Pattern
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _CardPatternPainter(isSelected: isSelected),
-                  ),
-                ),
-                
-                // Card Content
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        isSelected ? Icons.check_circle : Icons.touch_app,
-                        size: 72,
+        child: Stack(
+          children: [
+            // Card Pattern
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _CardPatternPainter(isSelected: isSelected),
+              ),
+            ),
+            
+            // Card Content
+            Center(
+              child: isSelected
+                  ? const Icon(Icons.check, size: 48, color: Colors.white54)
+                  : const Text(
+                      '?',
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        isSelected ? 'Selected!' : player.name,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black26,
-                              offset: Offset(0, 2),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        isSelected ? '✓ Role Revealed' : 'Tap to reveal',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white.withOpacity(0.9),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  void _showRoleDialog(BuildContext context, dynamic player) {
+  Future<void> _handleCardTap(int cardIndex, GameProvider gameProvider) async {
+    if (_currentPlayerIndex >= gameProvider.players.length) return;
+
+    setState(() {
+      _selectedCardIndices.add(cardIndex);
+    });
+    HapticService().medium();
+
+    final currentPlayer = gameProvider.players[_currentPlayerIndex];
+
+    // Show the role dialog and wait for it to close
+    await _showRoleDialog(context, currentPlayer);
+
+    // Move to next player
+    setState(() {
+      _currentPlayerIndex++;
+    });
+
+    if (_currentPlayerIndex < gameProvider.players.length) {
+      if (mounted) {
+        _showTurnDialog(context, gameProvider.players[_currentPlayerIndex].name);
+      }
+    } else {
+      setState(() {
+        _allSelected = true;
+      });
+      HapticService().success();
+    }
+  }
+
+  Future<void> _showRoleDialog(BuildContext context, dynamic player) async {
     final isMrWhite = player.role.toString() == 'PlayerRole.mrWhite';
     final word = player.word;
     
-    showDialog(
+    await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => Dialog(
@@ -322,13 +375,11 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
           ),
           child: Stack(
             children: [
-              // Background pattern
               Positioned.fill(
                 child: CustomPaint(
                   painter: _DialogPatternPainter(isMrWhite: isMrWhite),
                 ),
               ),
-              // Content
               Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: Column(
@@ -379,13 +430,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 letterSpacing: 2,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black26,
-                                    offset: Offset(0, 2),
-                                    blurRadius: 4,
-                                  ),
-                                ],
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -584,18 +628,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                         const GameScreen(),
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
-                      const begin = Offset(1.0, 0.0);
-                      const end = Offset.zero;
-                      const curve = Curves.easeInOut;
-                      var tween = Tween(begin: begin, end: end)
-                          .chain(CurveTween(curve: curve));
-                      var offsetAnimation = animation.drive(tween);
-                      return SlideTransition(
-                        position: offsetAnimation,
-                        child: child,
-                      );
+                      return FadeTransition(opacity: animation, child: child);
                     },
-                    transitionDuration: const Duration(milliseconds: 500),
                   ),
                 );
               }

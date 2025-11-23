@@ -16,7 +16,7 @@ Undercover is a party game where players try to identify each other's roles thro
 - **Player Name Management**: Save and reuse player names across games with search/filter functionality
 - **40+ Word Pairs**: Diverse categories including food, animals, transportation, entertainment, and more
 - **Intuitive UI**: Beautiful Material Design 3 interface with gradient backgrounds
-- **Card-Based Role Selection**: Each player picks their own card to reveal their word privately
+- **Pass-and-Play Role Selection**: Players take turns passing the device to pick a card and reveal their word privately
 - **Player Elimination**: Vote system to eliminate suspected players
 - **Mr. White Guess**: Special mechanic allowing Mr. White to guess and win
 - **Game Statistics**: Live tracking of player counts and roles
@@ -66,7 +66,7 @@ Undercover is a party game where players try to identify each other's roles thro
    - Choose from saved players (with search)
    - Or manually enter new names
    - Names are saved automatically for future games
-4. Each player picks a card to reveal their word privately
+4. The app will prompt each player to take the device and pick a card to reveal their word privately
 
 ### Game Phase
 1. Players take turns describing their word (without saying it!)
