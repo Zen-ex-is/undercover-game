@@ -25,6 +25,9 @@ class GameProvider extends ChangeNotifier {
   bool _includeMrWhite = true;
   List<String> _playerNames = [];
   GameConfig _gameConfig = GameConfig();
+  
+  // Store secret card data for "Real Choice" card selection
+  final List<Map<String, dynamic>> _secretCards = [];
 
   // Getters
   List<Player> get players => _players;
@@ -71,6 +74,7 @@ class GameProvider extends ChangeNotifier {
   // Setup game with number of players
   void setupGame(int numPlayers, int numSpies, bool includeMrWhite) {
     _players.clear();
+    _secretCards.clear();
     
     // Get word pair based on configuration
     _currentWordPair = _getWordPairFromConfig();
@@ -93,14 +97,12 @@ class GameProvider extends ChangeNotifier {
       roles.add(PlayerRole.civilian);
     }
     
-    // Shuffle roles
+    // Shuffle roles to ensure random distribution behind cards
     roles.shuffle(Random());
     
-    // Create players with assigned roles
-    for (int i = 0; i < numPlayers; i++) {
-      PlayerRole role = roles[i];
+    // Populate secret cards
+    for (var role in roles) {
       String? word;
-      
       if (role == PlayerRole.civilian) {
         word = _currentWordPair!.civilianWord;
       } else if (role == PlayerRole.spy) {
@@ -109,6 +111,15 @@ class GameProvider extends ChangeNotifier {
         word = null; // Mr. White gets no word
       }
       
+      _secretCards.add({
+        'role': role,
+        'word': word,
+      });
+    }
+    
+    // Create players with PLACEHOLDER roles initially
+    // Roles will be assigned when they pick a card
+    for (int i = 0; i < numPlayers; i++) {
       // Use provided player names or fallback to default
       String playerName = i < _playerNames.length 
           ? _playerNames[i] 
@@ -117,50 +128,76 @@ class GameProvider extends ChangeNotifier {
       _players.add(Player(
         id: i + 1,
         name: playerName,
-        role: role,
-        word: word,
+        role: PlayerRole.civilian, // Placeholder
+        word: null, // Placeholder
       ));
     }
 
-    // Ensure Mr. White does not go first
-    // We rotate the player list so that the first player is never Mr. White
-    if (includeMrWhite && _players.any((p) => p.role == PlayerRole.mrWhite)) {
-      List<int> validStartingIndices = [];
-      for (int i = 0; i < _players.length; i++) {
-        if (_players[i].role != PlayerRole.mrWhite) {
-          validStartingIndices.add(i);
-        }
-      }
-
-      if (validStartingIndices.isNotEmpty) {
-        // Pick a random valid starting player
-        int startIndex = validStartingIndices[Random().nextInt(validStartingIndices.length)];
-        
-        // Rotate the list so this player is first
-        if (startIndex > 0) {
-          List<Player> rotatedList = [
-            ..._players.sublist(startIndex),
-            ..._players.sublist(0, startIndex)
-          ];
-          _players.clear();
-          _players.addAll(rotatedList);
-        }
-      }
-    }
-    
-    _gameState = GameState.playing;
+    _gameState = GameState.setup;
     _currentPlayerIndex = 0;
     _roundNumber = 1;
     _winner = null;
     notifyListeners();
   }
 
-  // Move to next player
-  void nextPlayer() {
-    do {
-      _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.length;
-    } while (_players[_currentPlayerIndex].isEliminated && alivePlayers > 0);
-    
+  // Assign role to player based on the card they picked
+  void assignRoleToPlayer(int playerIndex, int cardIndex) {
+    if (playerIndex < _players.length && cardIndex < _secretCards.length) {
+      final cardData = _secretCards[cardIndex];
+      _players[playerIndex] = _players[playerIndex].copyWith(
+        role: cardData['role'],
+        word: cardData['word'],
+      );
+      notifyListeners();
+    }
+  }
+
+  // Finalize setup and start the game
+  void startGame() {
+    // Ensure Mr. White does not go first
+    if (_includeMrWhite && _players.isNotEmpty) {
+      // If the first player (index 0) is Mr. White, change the starting player
+      if (_players[0].role == PlayerRole.mrWhite) {
+        // Find a non-Mr. White player to start
+        List<int> validStartingIndices = [];
+        for (int i = 0; i < _players.length; i++) {
+          if (_players[i].role != PlayerRole.mrWhite) {
+            validStartingIndices.add(i);
+          }
+        }
+
+        if (validStartingIndices.isNotEmpty) {
+          // Pick a random valid starting player
+          _currentPlayerIndex = validStartingIndices[Random().nextInt(validStartingIndices.length)];
+        }
+      } else {
+        _currentPlayerIndex = 0;
+      }
+    } else {
+      _currentPlayerIndex = 0;
+    }
+
+    _gameState = GameState.playing;
+    notifyListeners();
+  }
+
+  // Move to next player turn
+  void nextTurn() {
+    // Find next alive player after current index
+    int nextIndex = -1;
+    for (int i = _currentPlayerIndex + 1; i < _players.length; i++) {
+      if (!_players[i].isEliminated) {
+        nextIndex = i;
+        break;
+      }
+    }
+
+    if (nextIndex != -1) {
+      _currentPlayerIndex = nextIndex;
+    } else {
+      // No more players to speak this round, move to voting
+      _gameState = GameState.voting;
+    }
     notifyListeners();
   }
 
@@ -182,19 +219,29 @@ class GameProvider extends ChangeNotifier {
       
       // If Mr. White is eliminated, we don't check for game end yet.
       // We wait for Mr. White to make their guess.
-      if (!isMrWhite) {
-        checkGameEnd();
+      if (isMrWhite) {
+        notifyListeners();
+        return;
       }
+
+      checkGameEnd();
       
       // If the game is continuing, start the next round with a randomized order
       // This ensures that the speaking order changes every round
       if (_gameState != GameState.finished) {
-        _roundNumber++;
-        _players.shuffle();
+        _startNextRound();
       }
       
       notifyListeners();
     }
+  }
+
+  void _startNextRound() {
+    _roundNumber++;
+    _players.shuffle();
+    // Reset to first alive player for the new round
+    _currentPlayerIndex = _players.indexWhere((p) => !p.isEliminated);
+    _gameState = GameState.playing;
   }
 
   // Check if game has ended
@@ -279,7 +326,7 @@ class GameProvider extends ChangeNotifier {
   // Mr. White guesses the civilian word
   // Current Implementation: Mr. White must guess the CIVILIAN word only
   // Future Enhancement (v1.5.0): Add Expert Mode where Mr. White can guess EITHER word
-  void mrWhiteGuess(String guess) {
+  bool mrWhiteGuess(String guess) {
     if (_currentWordPair != null) {
       String civilianWord = _currentWordPair!.civilianWord.toLowerCase();
       String guessLower = guess.toLowerCase().trim();
@@ -288,18 +335,27 @@ class GameProvider extends ChangeNotifier {
       if (guessLower == civilianWord) {
         _winner = 'Mr. White wins! Correct guess: ${_currentWordPair!.civilianWord}';
         _gameState = GameState.finished;
+        notifyListeners();
+        return true;
       } else {
         // Mr. White guessed wrong.
         // Check if the game should end (e.g. if Civilians have won now that Mr. White failed)
         checkGameEnd();
+        
+        // If game continues, start next round
+        if (_gameState != GameState.finished) {
+          _startNextRound();
+        }
+
+        notifyListeners();
+        return false;
       }
       
       // TODO v1.5.0: Add Expert Mode logic
       // In Expert Mode, also check against spyWord:
       // String spyWord = _currentWordPair!.spyWord.toLowerCase();
       // if (guessLower == civilianWord || guessLower == spyWord) { ... }
-      
-      notifyListeners();
     }
+    return false;
   }
 }

@@ -20,12 +20,18 @@ class GameScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('Round ${gameProvider.roundNumber}'),
+            title: Text(gameProvider.gameState == GameState.voting
+                ? 'Voting Phase'
+                : 'Round ${gameProvider.roundNumber}'),
             centerTitle: true,
             actions: [
               IconButton(
                 icon: const Icon(Icons.info_outline),
                 onPressed: () => _showGameInfo(context, gameProvider),
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app),
+                onPressed: () => _confirmEndGame(context, gameProvider),
               ),
             ],
           ),
@@ -40,108 +46,131 @@ class GameScreen extends StatelessWidget {
                 ],
               ),
             ),
-            child: Column(
-              children: [
-                // Game Status Bar
-                _buildStatusBar(gameProvider),
-                
-                // Players List
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: gameProvider.players.length,
-                    itemBuilder: (context, index) {
-                      return _buildPlayerCard(
-                        context,
-                        gameProvider,
-                        gameProvider.players[index],
-                      )
-                          .animate()
-                          .fadeIn(delay: (100 * index).ms, duration: 300.ms)
-                          .slideX(begin: -0.2, end: 0);
-                    },
-                  ),
-                ),
-                
-                // Action Buttons
-                _buildActionButtons(context, gameProvider),
-              ],
-            ),
+            child: gameProvider.gameState == GameState.voting
+                ? _buildVotingPhase(context, gameProvider)
+                : _buildDescriptionPhase(context, gameProvider),
           ),
         );
       },
     );
   }
 
-  Widget _buildStatusBar(GameProvider gameProvider) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildStatusItem(
-            icon: Icons.people,
-            label: 'Alive',
-            value: '${gameProvider.alivePlayers}/${gameProvider.totalPlayers}',
-            color: Colors.blue,
-          ),
-          _buildStatusItem(
-            icon: Icons.groups,
-            label: 'Civilians',
-            value: '${gameProvider.civilianCount}',
-            color: Colors.green,
-          ),
-          _buildStatusItem(
-            icon: Icons.visibility_off,
-            label: 'Spies',
-            value: '${gameProvider.spyCount}',
-            color: Colors.red,
-          ),
-          if (gameProvider.includeMrWhite)
-            _buildStatusItem(
-              icon: Icons.help_outline,
-              label: 'Mr. White',
-              value: gameProvider.hasMrWhite ? '1' : '0',
-              color: Colors.orange,
+  Widget _buildDescriptionPhase(
+      BuildContext context, GameProvider gameProvider) {
+    final currentPlayer = gameProvider.players[gameProvider.currentPlayerIndex];
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              "It's your turn to describe!",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-        ],
+            const SizedBox(height: 32),
+            Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      child: Text(
+                        currentPlayer.name[0].toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      currentPlayer.name,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Describe your word without revealing it!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+                .animate()
+                .fadeIn(duration: 500.ms)
+                .scale(begin: const Offset(0.8, 0.8)),
+            const SizedBox(height: 48),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () {
+                  HapticService().light();
+                  gameProvider.nextTurn();
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: const Text(
+                  'Done',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatusItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
+  Widget _buildVotingPhase(BuildContext context, GameProvider gameProvider) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.black54,
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            'Who do you want to eliminate?',
+            style: Theme.of(context).textTheme.headlineSmall,
+            textAlign: TextAlign.center,
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: gameProvider.players.length,
+            itemBuilder: (itemContext, index) {
+              final player = gameProvider.players[index];
+              if (player.isEliminated) return const SizedBox.shrink();
+
+              return _buildPlayerCard(
+                context,
+                gameProvider,
+                player,
+                isVoting: true,
+              )
+                  .animate()
+                  .fadeIn(delay: (100 * index).ms, duration: 300.ms)
+                  .slideX(begin: -0.2, end: 0);
+            },
           ),
         ),
       ],
@@ -151,10 +180,11 @@ class GameScreen extends StatelessWidget {
   Widget _buildPlayerCard(
     BuildContext context,
     GameProvider gameProvider,
-    Player player,
-  ) {
+    Player player, {
+    bool isVoting = false,
+  }) {
     final isEliminated = player.isEliminated;
-    
+
     return Card(
       elevation: isEliminated ? 1 : 4,
       margin: const EdgeInsets.only(bottom: 12),
@@ -174,9 +204,9 @@ class GameScreen extends StatelessWidget {
           leading: CircleAvatar(
             backgroundColor: isEliminated
                 ? Colors.grey
-                : _getRoleColor(player.role),
+                : Theme.of(context).primaryColor,
             child: Text(
-              'P${player.id}',
+              player.name[0].toUpperCase(),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -197,15 +227,19 @@ class GameScreen extends StatelessWidget {
                   style: TextStyle(color: Colors.red),
                 )
               : null,
-          trailing: isEliminated
-              ? const Icon(Icons.close, color: Colors.red)
-              : IconButton(
-                  icon: const Icon(Icons.how_to_vote, color: Colors.red),
+          trailing: isVoting && !isEliminated
+              ? ElevatedButton(
                   onPressed: () {
                     HapticService().light();
                     _confirmElimination(context, gameProvider, player);
                   },
-                ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Eliminate'),
+                )
+              : null,
         ),
       ),
     );
@@ -220,36 +254,6 @@ class GameScreen extends StatelessWidget {
       case PlayerRole.mrWhite:
         return Colors.orange;
     }
-  }
-
-  Widget _buildActionButtons(BuildContext context, GameProvider gameProvider) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => _confirmEndGame(context, gameProvider),
-              icon: const Icon(Icons.home),
-              label: const Text('End Game'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 48),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   void _confirmElimination(BuildContext context, GameProvider gameProvider, Player player) {
@@ -323,7 +327,19 @@ class GameScreen extends StatelessWidget {
                 return;
               }
               Navigator.pop(context);
-              gameProvider.mrWhiteGuess(guess);
+              bool correct = gameProvider.mrWhiteGuess(guess);
+              if (!correct && gameProvider.gameState != GameState.finished) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Mr. White guessed incorrectly! The game continues.',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    backgroundColor: Colors.red,
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+              }
             },
             child: const Text('Submit Guess'),
           ),

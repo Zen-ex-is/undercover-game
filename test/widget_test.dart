@@ -191,12 +191,17 @@ void main() {
 
     test('Mr. White incorrect guess should lose', () {
       final provider = GameProvider();
-      provider.setupGame(6, 1, true);
+      // Setup with 0 spies so game ends when Mr. White is eliminated
+      provider.setupGame(6, 0, true);
+
+      // Eliminate Mr. White first
+      final mrWhite = provider.players.firstWhere((p) => p.role == PlayerRole.mrWhite);
+      provider.eliminatePlayer(mrWhite.id);
 
       provider.mrWhiteGuess('WrongWord');
 
       expect(provider.gameState, GameState.finished);
-      expect(provider.winner, contains('Civilians and Spies win'));
+      expect(provider.winner, contains('Civilians win'));
     });
   });
 }

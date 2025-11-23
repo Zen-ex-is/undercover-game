@@ -329,6 +329,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     });
     HapticService().medium();
 
+    // Assign the role from the secret card to the current player
+    gameProvider.assignRoleToPlayer(_currentPlayerIndex, cardIndex);
     final currentPlayer = gameProvider.players[_currentPlayerIndex];
 
     // Show the role dialog and wait for it to close
@@ -621,6 +623,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         onPressed: enabled
             ? () {
                 HapticService().heavy();
+                // Finalize setup and start game
+                Provider.of<GameProvider>(context, listen: false).startGame();
+                
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
